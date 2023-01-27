@@ -14,6 +14,7 @@ public interface Tokenizer {
     void start(CharSequence input, int startOffset, int endOffset, State initialState);
     boolean hasNext();
     Token next();
+    CharSequence getCurrentInput();
     State getCurrentState();
 
     default Queue<Token> tokenizeAll(CharSequence input, State initialState) {

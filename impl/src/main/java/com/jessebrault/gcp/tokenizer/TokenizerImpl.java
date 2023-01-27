@@ -59,4 +59,9 @@ public final class TokenizerImpl implements Tokenizer {
         return this.fsm.getCurrentState();
     }
 
+    @Override
+    public CharSequence getCurrentInput() {
+        return this.input;
+    }
+
 }
