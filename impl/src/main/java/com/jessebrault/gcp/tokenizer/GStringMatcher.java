@@ -25,11 +25,15 @@ final class GStringMatcher implements FsmFunction {
 
         @Override
         public CharSequence part(int index) {
-            return switch(index) {
-                case 1, 3 -> "\"";
-                case 2 -> this.contents;
-                default -> throw new IllegalArgumentException();
-            };
+            switch (index) {
+                case 1:
+                case 3:
+                    return "\"";
+                case 2:
+                    return this.contents;
+                default:
+                    throw new IllegalArgumentException();
+            }
         }
 
     }

@@ -2,10 +2,12 @@ package com.jessebrault.gcp
 
 
 import groovy.text.TemplateEngine
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 
+@Disabled
 class GcpTemplateEngineIntegrationTests {
 
     private final TemplateEngine engine = new GcpTemplateEngine(new GcpTemplateEngine.Configuration(

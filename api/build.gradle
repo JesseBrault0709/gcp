@@ -11,10 +11,10 @@ dependencies {
     implementation 'org.apache.groovy:groovy-templates:4.0.7'
 
     // https://archiva.jessebrault.com/#artifact/com.jessebrault.fsm/lib/0.1.0-SNAPSHOT
-    implementation 'com.jessebrault.fsm:lib:0.1.0-SNAPSHOT'
+    implementation 'com.jessebrault.fsm:lib:0.2.1'
 
     // https://archiva.jessebrault.com/#artifact/com.jessebrault.fsm/groovy-extension/0.1.0-SNAPSHOT
-    implementation 'com.jessebrault.fsm:groovy-extension:0.1.0-SNAPSHOT'
+    implementation 'com.jessebrault.fsm:groovy-extension:0.2.1'
 
     testRuntimeOnly project(':impl')
 }
