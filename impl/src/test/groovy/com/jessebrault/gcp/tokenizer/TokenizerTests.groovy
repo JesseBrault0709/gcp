@@ -4,8 +4,6 @@ import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import javax.swing.text.html.Option
-
 import static com.jessebrault.gcp.tokenizer.Token.Type.*
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
