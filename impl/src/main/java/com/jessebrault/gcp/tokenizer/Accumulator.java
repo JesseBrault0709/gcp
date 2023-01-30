@@ -8,7 +8,7 @@ final class Accumulator {
     private static final Pattern newline = Pattern.compile("([\n\r])");
 
     private final Queue<Token> tokens;
-    private int inputIndex = 0;
+    private int currentInputIndex = 0;
     private int line = 1;
     private int col = 1;
 
@@ -17,8 +17,16 @@ final class Accumulator {
     }
 
     public void accumulate(Token.Type type, CharSequence text) {
-        this.tokens.add(new TokenImpl(type, text, this.inputIndex, this.line, this.col));
-        this.inputIndex += text.length();
+        final var endIndex = this.currentInputIndex + text.length();
+        this.tokens.add(new TokenImpl(
+                type,
+                text,
+                this.currentInputIndex,
+                endIndex,
+                this.line,
+                this.col
+        ));
+        this.currentInputIndex = endIndex;
         final var m = newline.matcher(text);
         if (m.find()) {
             this.line += m.groupCount();

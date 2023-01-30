@@ -42,7 +42,10 @@ public interface Token {
 
     Type getType();
     CharSequence getText();
-    int getInputIndex();
+
+    int getStartIndex();
+    int getEndIndex();
+
     int getLine();
     int getCol();
 

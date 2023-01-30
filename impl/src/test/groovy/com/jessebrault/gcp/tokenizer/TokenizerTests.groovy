@@ -4,10 +4,15 @@ import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import javax.swing.text.html.Option
+
 import static com.jessebrault.gcp.tokenizer.Token.Type.*
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 
+/**
+ * TODO: Update remaining tests with start/end indices.
+ */
 class TokenizerTests {
 
     private static final Logger logger = LoggerFactory.getLogger(TokenizerTests)
@@ -16,12 +21,23 @@ class TokenizerTests {
 
         Token.Type type
         String text
+        Optional<Integer> startIndex
+        Optional<Integer> endIndex
         int line
         int col
 
-        TokenSpec(Token.Type type, String text = null, line = 0, col = 0) {
+        TokenSpec(
+                Token.Type type,
+                String text = null,
+                Optional<Integer> startIndex = Optional.empty(),
+                Optional<Integer> endIndex = Optional.empty(),
+                int line = 0,
+                int col = 0
+        ) {
             this.type = Objects.requireNonNull(type)
             this.text = text
+            this.startIndex = startIndex
+            this.endIndex = endIndex
             this.line = line
             this.col = col
         }
@@ -30,6 +46,12 @@ class TokenizerTests {
             assertEquals(this.type, actual.type)
             if (this.text != null) {
                 assertEquals(this.text, actual.text)
+            }
+            if (this.startIndex.isPresent()) {
+                assertEquals(this.startIndex.get(), actual.startIndex)
+            }
+            if (this.endIndex.isPresent()) {
+                assertEquals(this.endIndex.get(), actual.endIndex)
             }
             if (this.line != 0) {
                 assertEquals(this.line, actual.line)
@@ -41,7 +63,15 @@ class TokenizerTests {
 
         @Override
         String toString() {
-            "TokenSpec(${ this.type }, ${ this.text }, ${ this.line }, ${ this.col })"
+            String.format(
+                    "TokenSpec(type: %s, text: %s, startIndex: %s, endIndex: %s, line: %d, col: %d)",
+                    this.type,
+                    this.text,
+                    this.startIndex,
+                    this.endIndex,
+                    this.line,
+                    this.col
+            )
         }
 
     }
@@ -51,7 +81,18 @@ class TokenizerTests {
         Queue<TokenSpec> specs = new LinkedList<>()
 
         void expect(Token.Type type, String text = null, line = 0, col = 0) {
-            this.specs << new TokenSpec(type, text, line, col)
+            this.specs << new TokenSpec(type, text, Optional.empty(), Optional.empty(), line, col)
+        }
+
+        void expect(
+                Token.Type type,
+                String text,
+                int startIndex,
+                int endIndex,
+                int line,
+                int col
+        ) {
+            this.specs << new TokenSpec(type, text, Optional.of(startIndex), Optional.of(endIndex), line, col)
         }
 
     }
@@ -82,42 +123,42 @@ class TokenizerTests {
     @Test
     void doctypeHtmlIsText() {
         test('<!DOCTYPE html>') {
-            expect TEXT, '<!DOCTYPE html>', 1, 1
+            expect TEXT, '<!DOCTYPE html>', 0, 15, 1, 1
         }
     }
 
     @Test
     void htmlLangEnIsText() {
         test('<html lang="en">') {
-            expect TEXT, '<html lang="en">', 1, 1
+            expect TEXT, '<html lang="en">', 0, 16, 1, 1
         }
     }
 
     @Test
     void component() {
         test('<Test />') {
-            expect COMPONENT_START, '<', 1, 1
-            expect CLASS_NAME, 'Test', 1, 2
-            expect WHITESPACE, ' ', 1, 6
-            expect FORWARD_SLASH, '/', 1, 7
-            expect COMPONENT_END, '>', 1, 8
+            expect COMPONENT_START, '<', 0, 1, 1, 1
+            expect CLASS_NAME, 'Test', 1, 5, 1, 2
+            expect WHITESPACE, ' ', 5, 6, 1, 6
+            expect FORWARD_SLASH, '/', 6, 7, 1, 7
+            expect COMPONENT_END, '>', 7, 8, 1, 8
         }
     }
 
     @Test
     void componentWithGString() {
         test('<Test test="test" />') {
-            expect COMPONENT_START, '<', 1, 1
-            expect CLASS_NAME, 'Test', 1, 2
-            expect WHITESPACE, ' ', 1, 6
-            expect KEY, 'test', 1, 7
-            expect EQUALS, '=', 1, 11
-            expect DOUBLE_QUOTE, '"', 1, 12
-            expect STRING, 'test', 1, 13
-            expect DOUBLE_QUOTE, '"', 1, 17
-            expect WHITESPACE, ' ', 1, 18
-            expect FORWARD_SLASH, '/', 1, 19
-            expect COMPONENT_END, '>', 1, 20
+            expect COMPONENT_START, '<', 0, 1, 1, 1
+            expect CLASS_NAME, 'Test', 1, 5, 1, 2
+            expect WHITESPACE, ' ', 5, 6, 1, 6
+            expect KEY, 'test', 6, 10, 1, 7
+            expect EQUALS, '=', 10, 11, 1, 11
+            expect DOUBLE_QUOTE, '"', 11, 12, 1, 12
+            expect STRING, 'test', 12, 16, 1, 13
+            expect DOUBLE_QUOTE, '"', 16, 17, 1, 17
+            expect WHITESPACE, ' ', 17, 18, 1, 18
+            expect FORWARD_SLASH, '/', 18, 19, 1, 19
+            expect COMPONENT_END, '>', 19, 20, 1, 20
         }
     }
 
