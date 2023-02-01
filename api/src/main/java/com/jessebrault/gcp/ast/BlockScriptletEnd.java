@@ -1,13 +1,12 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
-
-import java.util.List;
-
+/**
+ * Leaf: %>
+ */
 public final class BlockScriptletEnd extends AbstractAstNode {
 
-    public BlockScriptletEnd(List<Token> tokens) {
-        super("BlockScriptletEnd", tokens);
+    public BlockScriptletEnd() {
+        super("BlockScriptletEnd");
     }
 
     @Override

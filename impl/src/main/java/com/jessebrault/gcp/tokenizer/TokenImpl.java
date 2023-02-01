@@ -1,6 +1,6 @@
 package com.jessebrault.gcp.tokenizer;
 
-public final class TokenImpl implements Token {
+final class TokenImpl implements Token {
 
     private final Type type;
     private final CharSequence text;

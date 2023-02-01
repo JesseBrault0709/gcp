@@ -34,7 +34,7 @@ public interface Token {
         COMPONENT_END,
         ;
 
-        boolean isAnyOf(Collection<Type> types) {
+        public boolean isAnyOf(Collection<Type> types) {
             return types.contains(this);
         }
 

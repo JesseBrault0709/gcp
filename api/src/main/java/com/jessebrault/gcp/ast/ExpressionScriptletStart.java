@@ -1,16 +1,12 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
-
-import java.util.List;
-
 /**
  * Leaf: <%=
  */
 public final class ExpressionScriptletStart extends AbstractAstNode {
 
-    public ExpressionScriptletStart(List<Token> tokens) {
-        super("ExpressionScriptletStart", tokens);
+    public ExpressionScriptletStart() {
+        super("ExpressionScriptletStart");
     }
 
     @Override

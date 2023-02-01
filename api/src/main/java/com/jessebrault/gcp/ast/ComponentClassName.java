@@ -1,18 +1,29 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
+import java.util.Objects;
 
-import java.util.List;
-
+/**
+ * Leaf: ClassName
+ */
 public final class ComponentClassName extends AbstractAstNode {
 
-    public ComponentClassName(List<Token> tokens) {
-        super("ComponentClassName", tokens);
+    private String className;
+
+    public ComponentClassName() {
+        super("ComponentClassName");
     }
 
     @Override
     public void accept(AstNodeVisitor visitor) {
         visitor.visit(this);
+    }
+
+    public String getClassName() {
+        return Objects.requireNonNull(this.className);
+    }
+
+    public void setClassName(String className) {
+        this.className = Objects.requireNonNull(className);
     }
 
 }

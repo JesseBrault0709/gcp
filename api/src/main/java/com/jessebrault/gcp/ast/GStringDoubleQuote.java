@@ -1,16 +1,12 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
-
-import java.util.List;
-
 /**
  * Leaf: "
  */
 public final class GStringDoubleQuote extends AbstractAstNode {
 
-    public GStringDoubleQuote(List<Token> tokens) {
-        super("GStringDoubleQuote", tokens);
+    public GStringDoubleQuote() {
+        super("GStringDoubleQuote");
     }
 
     @Override

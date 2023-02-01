@@ -1,16 +1,13 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
-
-import java.util.List;
 import java.util.Objects;
 
 public final class DollarReferenceIdentifier extends AbstractAstNode {
 
     private String identifier;
 
-    public DollarReferenceIdentifier(List<Token> tokens) {
-        super("DollarReferenceIdentifier", tokens);
+    public DollarReferenceIdentifier() {
+        super("DollarReferenceIdentifier");
     }
 
     @Override

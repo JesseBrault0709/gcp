@@ -1,16 +1,13 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
-
-import java.util.List;
 import java.util.Objects;
 
 public final class DollarScriptletText extends AbstractAstNode {
 
     private String text;
 
-    public DollarScriptletText(List<Token> tokens) {
-        super("DollarScriptletText", tokens);
+    public DollarScriptletText() {
+        super("DollarScriptletText");
     }
 
     @Override

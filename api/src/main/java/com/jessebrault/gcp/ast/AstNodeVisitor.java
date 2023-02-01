@@ -12,6 +12,7 @@ public interface AstNodeVisitor {
     void visit(ComponentStart componentStart); // <
     void visit(ComponentIdentifier componentIdentifier); // com.jessebrault.Component
     void visit(ComponentPackageName componentPackageName); // com
+    void visit(ComponentIdentifierIndex componentIdentifierIndex); // .Component
     void visit(ComponentDot componentDot); // .
     void visit(ComponentClassName componentClassName); // Component
 
@@ -20,8 +21,6 @@ public interface AstNodeVisitor {
     void visit(ComponentKeyAndValue componentKeyAndValue); // key0="Value"
     void visit(ComponentKey componentKey); // key0
     void visit(ComponentEquals componentEquals); // =
-
-    void visit(ComponentValue componentValue); // "Value"
 
     void visit(GString gString); // "Value"
     void visit(GStringDoubleQuote gStringDoubleQuote); // "
@@ -53,4 +52,6 @@ public interface AstNodeVisitor {
 
     void visit(ForwardSlash forwardSlash); // /
     void visit(ComponentEnd componentEnd); // >
+
+    void visit(DiagnosticNode diagnosticNode);
 }

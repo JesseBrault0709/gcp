@@ -1,16 +1,12 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
-
-import java.util.List;
-
 /**
  * Leaf: >
  */
 public final class ComponentEnd extends AbstractAstNode {
 
-    public ComponentEnd(List<Token> tokens) {
-        super("ComponentEnd", tokens);
+    public ComponentEnd() {
+        super("ComponentEnd");
     }
 
     @Override

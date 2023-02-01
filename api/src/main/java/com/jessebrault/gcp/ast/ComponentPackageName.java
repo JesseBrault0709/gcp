@@ -1,18 +1,26 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
-
-import java.util.List;
+import java.util.Objects;
 
 public final class ComponentPackageName extends AbstractAstNode {
 
-    public ComponentPackageName(List<Token> tokens) {
-        super("ComponentPackageName", tokens);
+    private String packageName;
+
+    public ComponentPackageName() {
+        super("ComponentPackageName");
     }
 
     @Override
     public void accept(AstNodeVisitor visitor) {
         visitor.visit(this);
+    }
+
+    public String getPackageName() {
+        return Objects.requireNonNull(this.packageName);
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = Objects.requireNonNull(packageName);
     }
 
 }

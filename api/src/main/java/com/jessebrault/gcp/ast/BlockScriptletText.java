@@ -1,16 +1,13 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
-
-import java.util.List;
 import java.util.Objects;
 
 public final class BlockScriptletText extends AbstractAstNode {
 
     private String text;
 
-    public BlockScriptletText(List<Token> tokens) {
-        super("BlockScriptletText", tokens);
+    public BlockScriptletText() {
+        super("BlockScriptletText");
     }
 
     @Override

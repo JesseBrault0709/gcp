@@ -1,8 +1,5 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
-
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -12,8 +9,8 @@ public final class ComponentKey extends AbstractAstNode {
 
     private String key;
 
-    public ComponentKey(List<Token> tokens) {
-        super("ComponentKey", tokens);
+    public ComponentKey() {
+        super("ComponentKey");
     }
 
     @Override

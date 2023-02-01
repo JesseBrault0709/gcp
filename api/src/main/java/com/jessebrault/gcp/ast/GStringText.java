@@ -1,16 +1,13 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
-
-import java.util.List;
 import java.util.Objects;
 
 public final class GStringText extends AbstractAstNode {
 
     private String text;
 
-    public GStringText(List<Token> tokens) {
-        super("GStringText", tokens);
+    public GStringText() {
+        super("GStringText");
     }
 
     @Override
