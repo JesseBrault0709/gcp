@@ -132,8 +132,15 @@ public final class ParserImpl implements Parser {
      * Peek: COMPONENT_START ... FORWARD_SLASH
      */
     private static SelfClosingComponent selfClosingComponent(TokenIterator tokenIterator) {
-        final var componentStart = componentStart(tokenIterator);
-        return null; // TODO
+        final var selfClosingComponent = new SelfClosingComponent();
+        selfClosingComponent.appendChild(componentStart(tokenIterator));
+        selfClosingComponent.appendChild(componentIdentifier(tokenIterator));
+
+        // TODO: keys and values
+
+        selfClosingComponent.appendChild(forwardSlash(tokenIterator));
+        selfClosingComponent.appendChild(componentEnd(tokenIterator));
+        return selfClosingComponent;
     }
 
     /**
@@ -151,20 +158,22 @@ public final class ParserImpl implements Parser {
     /**
      * Peek: COMPONENT_START
      */
-    private static ComponentStart componentStart(TokenIterator tokenIterator) {
+    private static AstNode componentStart(TokenIterator tokenIterator) {
         logger.trace(enter, "tokenIterator: {}", tokenIterator);
 
-        // TODO: make a better result without throwing exception
-        if (!tokenIterator.isFirst(COMPONENT_START)) {
-            throw new IllegalArgumentException("did not peek for COMPONENT_START");
+        AstNode result;
+
+        if (tokenIterator.isFirst(COMPONENT_START)) {
+            result = new ComponentStart();
+            result.addToken(tokenIterator.next());
+        } else if (tokenIterator.hasNext()) {
+            result = unexpectedToken(tokenIterator, List.of(COMPONENT_START), List.of());
+        } else {
+            result = notEnoughTokens(tokenIterator, List.of(COMPONENT_START), List.of());
         }
-        final var componentStartToken = tokenIterator.next();
 
-        final var componentStartNode = new ComponentStart();
-        componentStartNode.addToken(componentStartToken);
-
-        logger.trace(exit, "componentStartNode: {}", componentStartNode);
-        return componentStartNode;
+        logger.trace(exit, "result: {}", result);
+        return result;
     }
 
     private static AstNode componentIdentifier(TokenIterator tokenIterator) {
@@ -212,8 +221,10 @@ public final class ParserImpl implements Parser {
             index = componentPackageName(tokenIterator);
         } else if (tokenIterator.isFirst(CLASS_NAME)) {
             index = componentClassName(tokenIterator);
-        } else {
+        } else if (tokenIterator.hasNext()) {
             index = unexpectedToken(tokenIterator, List.of(PACKAGE_NAME, CLASS_NAME), List.of(dot));
+        } else {
+            index = notEnoughTokens(tokenIterator, List.of(PACKAGE_NAME, CLASS_NAME), List.of(dot));
         }
 
         final var componentIdentifierIndex = new ComponentIdentifierIndex();
@@ -234,8 +245,10 @@ public final class ParserImpl implements Parser {
             final var componentDot = new ComponentDot();
             componentDot.addToken(t);
             result = componentDot;
-        } else {
+        } else if (tokenIterator.hasNext()) {
             result = unexpectedToken(tokenIterator, List.of(DOT), List.of());
+        } else {
+            result = notEnoughTokens(tokenIterator, List.of(DOT), List.of());
         }
 
         logger.trace(exit, "result: {}", result);
@@ -253,8 +266,10 @@ public final class ParserImpl implements Parser {
             componentClassName.setClassName(t.getText().toString());
             componentClassName.addToken(t);
             result = componentClassName;
-        } else {
+        } else if (tokenIterator.hasNext()) {
             result = unexpectedToken(tokenIterator, List.of(CLASS_NAME), List.of());
+        } else {
+            result = notEnoughTokens(tokenIterator, List.of(CLASS_NAME), List.of());
         }
 
         logger.trace(exit, "result: {}", result);
@@ -272,8 +287,10 @@ public final class ParserImpl implements Parser {
             componentPackageName.setPackageName(t.getText().toString());
             componentPackageName.addToken(t);
             result = componentPackageName;
-        } else {
+        } else if (tokenIterator.hasNext()) {
             result = unexpectedToken(tokenIterator, List.of(PACKAGE_NAME), List.of());
+        } else {
+            result = notEnoughTokens(tokenIterator, List.of(PACKAGE_NAME), List.of());
         }
 
         logger.trace(exit, "result: {}", result);
@@ -288,8 +305,10 @@ public final class ParserImpl implements Parser {
         if (tokenIterator.isFirst(FORWARD_SLASH)) {
             result = new ForwardSlash();
             result.addToken(tokenIterator.next());
-        } else {
+        } else if (tokenIterator.hasNext()) {
             result = unexpectedToken(tokenIterator, List.of(FORWARD_SLASH), List.of());
+        } else {
+            result = notEnoughTokens(tokenIterator, List.of(FORWARD_SLASH), List.of());
         }
 
         logger.trace(exit, "result: {}", result);
@@ -316,6 +335,7 @@ public final class ParserImpl implements Parser {
 
     /**
      * Consumes: ANY*
+     * TODO: reconsider consuming ANY*
      */
     private static NotEnoughTokensNode notEnoughTokens(
             TokenIterator tokenIterator,
@@ -346,7 +366,11 @@ public final class ParserImpl implements Parser {
             Collection<Token.Type> expectedTypes,
             List<AstNode> children
     ) {
-        logger.trace(enter, "tokenIterator: {}, expectedTypes: {}", tokenIterator, expectedTypes);
+        logger.trace(
+                enter,
+                "tokenIterator: {}, expectedTypes: {}, children: {}",
+                tokenIterator, expectedTypes, children
+        );
 
         if (!tokenIterator.hasNext()) {
             throw new RuntimeException("did not peek for a next token");
