@@ -112,7 +112,7 @@ class ParserTests {
             @ClosureParams(value = SimpleType, options = ['com.jessebrault.gcp.ast.Document'])
             Closure<Void> documentTests
     ) {
-        def actualDocument = this.parser.parseDocument(new ListTokenIterator(tokens))
+        def actualDocument = this.parser.parse(new ListTokenIterator(tokens))
 
         def prettyPrinter = new AstNodePrettyPrinter(2, true)
         actualDocument.accept(prettyPrinter)

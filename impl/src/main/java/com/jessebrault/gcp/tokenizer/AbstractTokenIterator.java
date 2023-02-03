@@ -8,7 +8,7 @@ import org.slf4j.MarkerFactory;
 
 import java.util.*;
 
-abstract class AbstractTokenIterator implements TokenIterator {
+public abstract class AbstractTokenIterator implements TokenIterator {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractTokenIterator.class);
     private static final Marker enter = MarkerFactory.getMarker("ENTER");

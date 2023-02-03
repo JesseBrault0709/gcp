@@ -20,7 +20,7 @@ public final class ParserImpl implements Parser {
     private static final Marker exit = MarkerFactory.getMarker("EXIT");
 
     @Override
-    public Document parseDocument(TokenIterator tokenIterator) {
+    public Document parse(TokenIterator tokenIterator) {
         return document(tokenIterator);
     }
 
