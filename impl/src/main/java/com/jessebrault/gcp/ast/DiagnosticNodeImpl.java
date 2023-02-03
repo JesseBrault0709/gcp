@@ -5,12 +5,12 @@ import com.jessebrault.gcp.Diagnostic;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public abstract class AbstractDiagnosticNode extends AbstractAstNode implements DiagnosticNode {
+public final class DiagnosticNodeImpl extends AbstractAstNode implements DiagnosticNode {
 
     private final Collection<Diagnostic> diagnostics = new ArrayList<>();
 
-    public AbstractDiagnosticNode(String nodeTypeName) {
-        super(nodeTypeName);
+    public DiagnosticNodeImpl() {
+        super(Type.DIAGNOSTIC_NODE);
     }
 
     @Override
@@ -26,11 +26,6 @@ public abstract class AbstractDiagnosticNode extends AbstractAstNode implements 
     @Override
     public Collection<Diagnostic> getDiagnostics() {
         return new ArrayList<>(this.diagnostics);
-    }
-
-    @Override
-    public void accept(AstNodeVisitor visitor) {
-        visitor.visit(this);
     }
 
 }
