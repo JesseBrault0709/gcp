@@ -1,7 +1,7 @@
 package com.jessebrault.gcp.parser
 
 import com.jessebrault.gcp.ast.AstNode
-import com.jessebrault.gcp.tokenizer.ListTokenIterator
+import com.jessebrault.gcp.tokenizer.ListTokenProvider
 import com.jessebrault.gcp.tokenizer.Token
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
@@ -110,8 +110,9 @@ class ParserTests {
             @ClosureParams(value = SimpleType, options = ['com.jessebrault.gcp.ast.AstNode'])
             Closure<Void> documentTests
     ) {
-        def acc = new AstAccumulator()
-        this.parser.parse(new ListTokenIterator(tokens), acc)
+        def tokenProvider = new ListTokenProvider(tokens)
+        def acc = new AstAccumulator(tokenProvider)
+        this.parser.parse(tokenProvider, acc)
 
 //        def prettyPrinter = new AstNodePrettyPrinter(2, true)
 //        actualDocument.accept(prettyPrinter)

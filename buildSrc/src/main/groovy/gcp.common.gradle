@@ -2,6 +2,7 @@ plugins {
     id 'com.jessebrault.jbarchiva'
     id 'groovy'
     id 'java-library'
+    id 'java-test-fixtures'
 }
 
 group 'com.jessebrault.gcp'
@@ -17,8 +18,9 @@ repositories {
 }
 
 dependencies {
+    // TODO: fix this
     // https://mvnrepository.com/artifact/org.apache.groovy/groovy
-    implementation 'org.apache.groovy:groovy:4.0.8'
+    api 'org.apache.groovy:groovy:4.0.8'
 
     // https://mvnrepository.com/artifact/org.jetbrains/annotations
     api 'org.jetbrains:annotations:24.0.0'
@@ -29,32 +31,40 @@ dependencies {
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     implementation 'org.slf4j:slf4j-api:1.7.36'
 
+
     /**
      * TESTING
      */
-    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
 
-    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    // Implementation
+    [
+            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+            'org.junit.jupiter:junit-jupiter-api:5.8.2',
 
-    /**
-     * Mockito
-     */
-    // https://mvnrepository.com/artifact/org.mockito/mockito-core
-    testImplementation 'org.mockito:mockito-core:4.11.0'
+            // https://mvnrepository.com/artifact/org.mockito/mockito-core
+            'org.mockito:mockito-core:4.11.0',
 
-    // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
-    testImplementation 'org.mockito:mockito-junit-jupiter:4.11.0'
+            // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+            'org.mockito:mockito-junit-jupiter:4.11.0'
+    ].each {
+        testImplementation it
+        testFixturesImplementation it
+    }
 
-    /**
-     * Test Logging
-     */
-    // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl
-    testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j-impl:2.19.0'
+    // RuntimeOnly
+    [
+            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
+            'org.junit.jupiter:junit-jupiter-engine:5.8.2',
 
-    // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-    testRuntimeOnly 'org.apache.logging.log4j:log4j-core:2.19.0'
+            // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl
+            'org.apache.logging.log4j:log4j-slf4j-impl:2.19.0',
+
+            // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
+            'org.apache.logging.log4j:log4j-core:2.19.0'
+    ].each {
+        testImplementation it
+        testFixturesRuntimeOnly it
+    }
 }
 
 test {

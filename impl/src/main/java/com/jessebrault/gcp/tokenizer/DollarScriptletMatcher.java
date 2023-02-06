@@ -32,18 +32,13 @@ final class DollarScriptletMatcher implements FsmFunction {
 
         @Override
         public CharSequence part(int index) {
-            switch (index) {
-                case 1:
-                    return "$";
-                case 2:
-                    return "{";
-                case 3:
-                    return this.scriptlet;
-                case 4:
-                    return "}";
-                default:
-                    throw new IllegalArgumentException();
-            }
+            return switch (index) {
+                case 1 -> "$";
+                case 2 -> "{";
+                case 3 -> this.scriptlet;
+                case 4 -> "}";
+                default -> throw new IllegalArgumentException();
+            };
         }
 
     }
@@ -125,10 +120,8 @@ final class DollarScriptletMatcher implements FsmFunction {
 
             if (stateStack.peek() == State.NO_STRING) {
                 switch (c0) {
-                    case "{":
-                        currentCounterSupplier.get().increment();
-                        break;
-                    case "}":
+                    case "{" -> currentCounterSupplier.get().increment();
+                    case "}" -> {
                         final var currentCounter = currentCounterSupplier.get();
                         currentCounter.decrement();
                         if (currentCounter.isZero()) {
@@ -142,17 +135,13 @@ final class DollarScriptletMatcher implements FsmFunction {
                                 counterStack.pop();
                             }
                         }
-                        break;
-                    case "\"":
-                        stateStack.push(State.G_STRING);
-                        break;
-                    case "'":
-                        stateStack.push(State.SINGLE_QUOTE_STRING);
-                        break;
+                    }
+                    case "\"" -> stateStack.push(State.G_STRING);
+                    case "'" -> stateStack.push(State.SINGLE_QUOTE_STRING);
                 }
             } else if (stateStack.peek() == State.G_STRING) {
                 switch (c0) {
-                    case "\\":
+                    case "\\" -> {
                         if (iterator.hasNext()) {
                             final var c1 = iterator.next();
                             entireAcc.append(c1);
@@ -161,8 +150,8 @@ final class DollarScriptletMatcher implements FsmFunction {
                                     "Ill-formed dollarScriptlet (backslash followed by nothing)"
                             );
                         }
-                        break;
-                    case "$":
+                    }
+                    case "$" -> {
                         if (iterator.hasNext()) {
                             final var c1 = iterator.next();
                             entireAcc.append(c1);
@@ -174,15 +163,15 @@ final class DollarScriptletMatcher implements FsmFunction {
                         } else {
                             throw new IllegalArgumentException("Ill-formed dollarScriptlet (ends with a dollar)");
                         }
-                        break;
-                    case "\"":
+                    }
+                    case "\"" -> {
                         logger.debug("popping G_STRING state");
                         stateStack.pop();
-                        break;
+                    }
                 }
             } else if (stateStack.peek() == State.SINGLE_QUOTE_STRING) {
                 switch (c0) {
-                    case "\\":
+                    case "\\" -> {
                         if (iterator.hasNext()) {
                             entireAcc.append(iterator.next());
                         } else {
@@ -190,11 +179,11 @@ final class DollarScriptletMatcher implements FsmFunction {
                                     "Ill-formed dollarScriptlet (backslash followed by nothing)"
                             );
                         }
-                        break;
-                    case "'":
+                    }
+                    case "'" -> {
                         logger.debug("popping SINGLE_QUOTE_STRING state");
                         stateStack.pop();
-                        break;
+                    }
                 }
             } else {
                 throw new IllegalStateException(

@@ -1,7 +1,7 @@
 package com.jessebrault.gcp.parser;
 
-import com.jessebrault.gcp.tokenizer.TokenIterator;
+import com.jessebrault.gcp.tokenizer.TokenProvider;
 
 public interface Parser {
-    void parse(TokenIterator tokenIterator, ParserAccumulator parserAccumulator);
+    void parse(TokenProvider tokenProvider, ParserAccumulator parserAccumulator);
 }

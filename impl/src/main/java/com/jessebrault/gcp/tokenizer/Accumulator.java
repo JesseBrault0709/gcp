@@ -1,18 +1,18 @@
 package com.jessebrault.gcp.tokenizer;
 
-import java.util.Queue;
+import java.util.List;
 import java.util.regex.Pattern;
 
 final class Accumulator {
 
     private static final Pattern newline = Pattern.compile("([\n\r])");
 
-    private final Queue<Token> tokens;
+    private final List<Token> tokens;
     private int currentInputIndex = 0;
     private int line = 1;
     private int col = 1;
 
-    public Accumulator(Queue<Token> tokenQueue) {
+    public Accumulator(List<Token> tokenQueue) {
         this.tokens = tokenQueue;
     }
 

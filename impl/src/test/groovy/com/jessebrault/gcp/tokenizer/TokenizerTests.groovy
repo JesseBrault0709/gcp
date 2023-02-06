@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue
 /**
  * TODO: Update remaining tests with start/end indices.
  */
-class TokenizerTests {
+class TokenizerTests extends AbstractTokenProviderTests {
 
     private static final Logger logger = LoggerFactory.getLogger(TokenizerTests)
 
@@ -116,6 +116,19 @@ class TokenizerTests {
             assertTrue(resultIterator.hasNext())
             it.compare(resultIterator.next())
         }
+    }
+
+    @Override
+    protected TokenProvider getTokenProvider(List<Token> tokens) {
+        def src = tokens.collect {
+            if (it.text.isEmpty()) {
+                throw new IllegalArgumentException("it.text is empty: ${ it }")
+            }
+            it.text
+        }.join()
+        def tp = new TokenizerImpl()
+        tp.start(src, 0, src.length(), Tokenizer.State.TEXT)
+        tp
     }
 
     @Test

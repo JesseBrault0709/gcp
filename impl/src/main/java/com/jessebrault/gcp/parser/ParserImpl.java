@@ -2,31 +2,35 @@ package com.jessebrault.gcp.parser;
 
 import com.jessebrault.gcp.ast.AstNode;
 import com.jessebrault.gcp.tokenizer.Token;
-import com.jessebrault.gcp.tokenizer.TokenIterator;
+import com.jessebrault.gcp.tokenizer.TokenProvider;
 
 import java.util.List;
 
 public final class ParserImpl implements Parser {
 
     @Override
-    public void parse(TokenIterator tokenIterator, ParserAccumulator parserAccumulator) {
-        document(tokenIterator, parserAccumulator);
+    public void parse(TokenProvider tokenProvider, ParserAccumulator parserAccumulator) {
+        document(tokenProvider, parserAccumulator);
     }
 
-    private static void document(TokenIterator iter, ParserAccumulator acc) {
-        acc.startRoot(AstNode.Type.DOCUMENT);
-        while (iter.hasNext()) {
-            if (iter.isFirst(Token.Type.TEXT)) {
-                text(iter, acc);
+    private static void document(TokenProvider tokenProvider, ParserAccumulator accumulator) {
+        accumulator.startRoot(AstNode.Type.DOCUMENT);
+        while (tokenProvider.getCurrent() != null) {
+            if (tokenProvider.peekCurrent(Token.Type.TEXT)) {
+                text(tokenProvider, accumulator);
             } else {
-                acc.unexpectedToken(iter.next(), List.of(Token.Type.TEXT));
+                accumulator.unexpectedToken(List.of(Token.Type.TEXT));
             }
         }
-        acc.doneRoot();
+        accumulator.doneRoot();
     }
 
-    private static void text(TokenIterator i, ParserAccumulator acc) {
-        acc.leaf(AstNode.Type.TEXT, i.next());
+    private static void text(TokenProvider tokenProvider, ParserAccumulator accumulator) {
+        if (tokenProvider.peekCurrent(Token.Type.TEXT)) {
+            accumulator.leaf(AstNode.Type.TEXT);
+        } else {
+            accumulator.unexpectedToken(List.of(Token.Type.TEXT));
+        }
     }
 
 }

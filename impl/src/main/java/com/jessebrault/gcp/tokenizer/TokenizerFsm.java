@@ -77,6 +77,26 @@ final class TokenizerFsm {
     private static final FsmFunction forwardSlash = new PatternMatcher(Pattern.compile("^/"));
     private static final FsmFunction componentEnd = new PatternMatcher(Pattern.compile("^>"));
 
+    private static final class InvalidTokenOutput implements FsmOutput {
+
+        private final CharSequence invalidToken;
+
+        public InvalidTokenOutput(CharSequence invalidToken) {
+            this.invalidToken = invalidToken;
+        }
+
+        @Override
+        public CharSequence entire() {
+            return this.invalidToken;
+        }
+
+        @Override
+        public CharSequence part(int index) {
+            throw new UnsupportedOperationException();
+        }
+
+    }
+
     private static FunctionFsmBuilder<CharSequence, Tokenizer.State, FsmOutput> getFsmBuilder() {
         return new FunctionFsmBuilderImpl<>();
     }
@@ -115,7 +135,9 @@ final class TokenizerFsm {
                         acc.accumulate(COMPONENT_START, o.part(1));
                         acc.accumulate(FORWARD_SLASH, o.part(2));
                     });
-                    sc.onNoMatch().exec(input -> { throw new IllegalArgumentException(); });
+                    sc.onNoMatch().exec(input -> {
+                        throw new IllegalArgumentException("Ideally should not get here.");
+                    });
                 })
                 .whileIn(Tokenizer.State.COMPONENT_NAME, sc -> {
                     sc.on(packageName).exec(o -> {
@@ -136,7 +158,12 @@ final class TokenizerFsm {
                     sc.on(whitespace).shiftTo(Tokenizer.State.COMPONENT_KEYS_AND_VALUES).exec(o -> {
                         acc.accumulate(WHITESPACE, o.entire());
                     });
-                    sc.onNoMatch().exec(input -> { throw new IllegalArgumentException(); });
+                    sc.onNoMatch()
+                            .shiftTo(Tokenizer.State.TEXT)
+                            .instead(input -> new InvalidTokenOutput(input.subSequence(0, 1)))
+                            .exec(input -> {
+                                acc.accumulate(INVALID, input.subSequence(0, 1));
+                            });
                 })
                 .whileIn(Tokenizer.State.COMPONENT_KEYS_AND_VALUES, sc -> {
                     sc.on(componentEnd).shiftTo(Tokenizer.State.TEXT).exec(o -> {
@@ -187,7 +214,12 @@ final class TokenizerFsm {
                     sc.on(componentEnd).shiftTo(Tokenizer.State.TEXT).exec(o -> {
                         acc.accumulate(COMPONENT_END, o.entire());
                     });
-                    sc.onNoMatch().exec(input -> { throw new IllegalArgumentException(); });
+                    sc.onNoMatch()
+                            .shiftTo(Tokenizer.State.TEXT)
+                            .instead(input -> new InvalidTokenOutput(input.subSequence(0, 1)))
+                            .exec(input -> {
+                                acc.accumulate(INVALID, input.subSequence(0, 1));
+                            });
                 })
                 .build();
     }

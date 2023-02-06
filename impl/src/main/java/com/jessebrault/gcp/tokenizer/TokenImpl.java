@@ -1,5 +1,7 @@
 package com.jessebrault.gcp.tokenizer;
 
+import java.util.Objects;
+
 final class TokenImpl implements Token {
 
     private final Type type;
@@ -10,8 +12,8 @@ final class TokenImpl implements Token {
     private final int col;
 
     public TokenImpl(Type type, CharSequence text, int startIndex, int endIndex, int line, int col) {
-        this.type = type;
-        this.text = text;
+        this.type = Objects.requireNonNull(type);
+        this.text = Objects.requireNonNull(text);
         this.startIndex = startIndex;
         this.endIndex = endIndex;
         this.line = line;
@@ -59,6 +61,26 @@ final class TokenImpl implements Token {
                 this.line,
                 this.col
         );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        } else if (o == null || !Token.class.isAssignableFrom(o.getClass())) {
+            return false;
+        } else {
+            final var t = (Token) o;
+            return this.type == t.getType() &&
+                    this.text.equals(t.getText()) &&
+                    this.startIndex == t.getStartIndex() &&
+                    this.endIndex == t.getEndIndex();
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.type, this.text, this.startIndex, this.endIndex);
     }
 
 }

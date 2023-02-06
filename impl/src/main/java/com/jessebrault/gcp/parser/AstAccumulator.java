@@ -4,13 +4,19 @@ import com.jessebrault.gcp.ast.AstNode;
 import com.jessebrault.gcp.ast.DiagnosticNodeImpl;
 import com.jessebrault.gcp.ast.SimpleAstNode;
 import com.jessebrault.gcp.tokenizer.Token;
+import com.jessebrault.gcp.tokenizer.TokenProvider;
 
 import java.util.*;
 
 public final class AstAccumulator implements ParserAccumulator {
 
+    private final TokenProvider tokenProvider;
     private AstNode root;
     private final Deque<AstNode> nodeStack = new LinkedList<>();
+
+    public AstAccumulator(TokenProvider tokenProvider) {
+        this.tokenProvider = tokenProvider;
+    }
 
     public AstNode getResult() {
         return Objects.requireNonNull(this.root);
@@ -28,13 +34,17 @@ public final class AstAccumulator implements ParserAccumulator {
     }
 
     @Override
-    public void leaf(AstNode.Type type, List<Token> tokens) {
+    public void leaf(AstNode.Type type) {
         this.start(type);
         final var node = this.nodeStack.peek();
         if (node == null) {
             throw new IllegalStateException("node is null");
         }
-        node.addTokens(tokens);
+        final var token = this.tokenProvider.getCurrent();
+        if (token == null) {
+            throw new IllegalStateException("token is null");
+        }
+        node.addToken(token);
         this.done();
     }
 
@@ -49,6 +59,7 @@ public final class AstAccumulator implements ParserAccumulator {
             throw new IllegalStateException();
         }
         parent.addChild(node);
+        this.tokenProvider.advance();
     }
 
     @Override
@@ -59,8 +70,12 @@ public final class AstAccumulator implements ParserAccumulator {
     }
 
     @Override
-    public void unexpectedToken(Token token, Collection<Token.Type> expectedTypes) {
+    public void unexpectedToken(Collection<Token.Type> expectedTypes) {
         final var diagnosticNode = new DiagnosticNodeImpl();
+        final var token = this.tokenProvider.getCurrent();
+        if (token == null) {
+            throw new IllegalStateException("token is null");
+        }
         diagnosticNode.addDiagnostic(new UnexpectedTokenDiagnostic(token, expectedTypes));
         diagnosticNode.addToken(token);
 
@@ -69,6 +84,8 @@ public final class AstAccumulator implements ParserAccumulator {
             throw new IllegalStateException();
         }
         parent.addChild(diagnosticNode);
+
+        this.tokenProvider.advance();
     }
 
 }

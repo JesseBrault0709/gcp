@@ -32,6 +32,8 @@ public interface Token {
         COMPONENT_START,
         FORWARD_SLASH,
         COMPONENT_END,
+
+        INVALID
         ;
 
         public boolean isAnyOf(Collection<Type> types) {
