@@ -1,12 +1,15 @@
 package com.jessebrault.gcp.ast;
 
+import com.jessebrault.gcp.Diagnostic;
 import com.jessebrault.gcp.token.Token;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-public interface AstNode {
+public final class AstNode {
 
-    enum Type {
+    public enum Type {
         DOCUMENT,
         TEXT,
 
@@ -14,7 +17,7 @@ public interface AstNode {
         SELF_CLOSING_COMPONENT,
         CLOSING_COMPONENT,
 
-        LESS_THAN,
+        COMPONENT_START,
 
         COMPONENT_IDENTIFIER,
         INDEX,
@@ -56,18 +59,64 @@ public interface AstNode {
         BLOCK_SCRIPTLET_END,
 
         FORWARD_SLASH,
-        GREATER_THAN,
+        COMPONENT_END,
 
-        DIAGNOSTIC_NODE
+        UNEXPECTED_TOKEN
     }
 
-    Type getType();
+    private final Type type;
+    private final List<AstNode> children = new ArrayList<>();
+    private final List<Token> tokens = new ArrayList<>();
+    private final Collection<Diagnostic> diagnostics = new ArrayList<>();
 
-    void addChild(AstNode child);
-    void addChildren(List<? extends AstNode> children);
-    List<AstNode> getChildren();
+    public AstNode(Type type) {
+        this.type = type;
+    }
 
-    void addToken(Token token);
-    void addTokens(List<? extends Token> tokens);
-    List<Token> getTokens();
+    public Type getType() {
+        return this.type;
+    }
+
+    public void addChild(AstNode child) {
+        this.children.add(child);
+        this.tokens.addAll(child.getTokens());
+    }
+
+    public void addChildren(List<? extends AstNode> children) {
+        children.forEach(this::addChild);
+    }
+
+    public List<AstNode> getChildren() {
+        return new ArrayList<>(this.children);
+    }
+
+    public void addToken(Token token) {
+        this.tokens.add(token);
+    }
+
+    public void addTokens(List<? extends Token> tokens) {
+        this.tokens.addAll(tokens);
+    }
+
+    public List<Token> getTokens() {
+        return new ArrayList<>(this.tokens);
+    }
+
+    public void addDiagnostic(Diagnostic diagnostic) {
+        this.diagnostics.add(diagnostic);
+    }
+
+    public void addDiagnostics(Collection<? extends Diagnostic> diagnostics) {
+        this.diagnostics.addAll(diagnostics);
+    }
+
+    public Collection<Diagnostic> getDiagnostics() {
+        return new ArrayList<>(this.diagnostics);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("AstNode(%s, %s)", this.type.name(), this.children);
+    }
+
 }

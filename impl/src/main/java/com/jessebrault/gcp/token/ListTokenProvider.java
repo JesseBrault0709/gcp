@@ -61,4 +61,9 @@ public final class ListTokenProvider implements TokenProvider {
         this.currentIndex++;
     }
 
+    @Override
+    public String toString() {
+        return "ListTokenProvider(currentIndex: " + this.currentIndex + ")";
+    }
+
 }
