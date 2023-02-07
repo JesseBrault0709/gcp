@@ -1,4 +1,4 @@
-package com.jessebrault.gcp.tokenizer;
+package com.jessebrault.gcp.token;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -18,7 +18,7 @@ final class Accumulator {
 
     public void accumulate(Token.Type type, CharSequence text) {
         final var endIndex = this.currentInputIndex + text.length();
-        this.tokens.add(new TokenImpl(
+        this.tokens.add(new Token(
                 type,
                 text,
                 this.currentInputIndex,

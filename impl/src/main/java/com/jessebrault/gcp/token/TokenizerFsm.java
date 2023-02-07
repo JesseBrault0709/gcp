@@ -1,10 +1,10 @@
-package com.jessebrault.gcp.tokenizer;
+package com.jessebrault.gcp.token;
 
 import com.jessebrault.fsm.function.FunctionFsm;
 import com.jessebrault.fsm.function.FunctionFsmBuilder;
 import com.jessebrault.fsm.function.FunctionFsmBuilderImpl;
 
-import static com.jessebrault.gcp.tokenizer.Token.Type.*;
+import static com.jessebrault.gcp.token.Token.Type.*;
 
 import java.util.regex.Pattern;
 

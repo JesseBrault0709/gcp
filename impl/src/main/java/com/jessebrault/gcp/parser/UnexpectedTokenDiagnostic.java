@@ -1,10 +1,9 @@
 package com.jessebrault.gcp.parser;
 
-import com.jessebrault.gcp.tokenizer.Token;
+import com.jessebrault.gcp.token.Token;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 final class UnexpectedTokenDiagnostic extends AbstractParserDiagnostic {

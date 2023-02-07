@@ -1,4 +1,4 @@
-package com.jessebrault.gcp.tokenizer;
+package com.jessebrault.gcp.token;
 
 import com.jessebrault.fsm.stackfunction.StackFunctionFsm;
 import com.jessebrault.fsm.stackfunction.StackFunctionFsmBuilder;

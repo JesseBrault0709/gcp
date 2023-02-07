@@ -1,4 +1,4 @@
-package com.jessebrault.gcp.tokenizer;
+package com.jessebrault.gcp.token;
 
 import java.util.function.Function;
 

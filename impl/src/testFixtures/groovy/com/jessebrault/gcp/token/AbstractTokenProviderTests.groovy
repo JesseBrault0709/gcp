@@ -1,4 +1,4 @@
-package com.jessebrault.gcp.tokenizer
+package com.jessebrault.gcp.token
 
 import org.junit.jupiter.api.Test
 
@@ -8,12 +8,12 @@ abstract class AbstractTokenProviderTests {
 
     private static List<Token> getCompleteExample() {
         [
-                new TokenImpl(Token.Type.TEXT, 'Hello, World!', 0, 13, 1, 1),
-                new TokenImpl(Token.Type.COMPONENT_START, '<', 13, 14, 1, 14),
-                new TokenImpl(Token.Type.CLASS_NAME, 'Test', 14, 18, 1, 15),
-                new TokenImpl(Token.Type.WHITESPACE, ' ', 18, 19, 1, 19),
-                new TokenImpl(Token.Type.FORWARD_SLASH, '/', 19, 20, 1, 20),
-                new TokenImpl(Token.Type.COMPONENT_END, '>', 20, 21, 1, 21)
+                new Token(Token.Type.TEXT, 'Hello, World!', 0, 13, 1, 1),
+                new Token(Token.Type.COMPONENT_START, '<', 13, 14, 1, 14),
+                new Token(Token.Type.CLASS_NAME, 'Test', 14, 18, 1, 15),
+                new Token(Token.Type.WHITESPACE, ' ', 18, 19, 1, 19),
+                new Token(Token.Type.FORWARD_SLASH, '/', 19, 20, 1, 20),
+                new Token(Token.Type.COMPONENT_END, '>', 20, 21, 1, 21)
         ]
     }
 
@@ -24,7 +24,7 @@ abstract class AbstractTokenProviderTests {
 
     @Test
     void withOneTokenCurrentNotNull() {
-        def t0 = new TokenImpl(Token.Type.TEXT, 'Hello, World!', 0, 13, 1, 1)
+        def t0 = new Token(Token.Type.TEXT, 'Hello, World!', 0, 13, 1, 1)
         def tp = this.getTokenProvider([t0])
         def o0 = tp.getCurrent()
         assertEquals(t0, o0)
@@ -49,7 +49,7 @@ abstract class AbstractTokenProviderTests {
 
     @Test
     void withOneTokenPeekCurrentIsCorrect() {
-        def t0 = new TokenImpl(Token.Type.TEXT, 'Hello, World!', 0, 13, 1, 1)
+        def t0 = new Token(Token.Type.TEXT, 'Hello, World!', 0, 13, 1, 1)
         def tp = this.getTokenProvider([t0])
         assertTrue(tp.peekCurrent(Token.Type.TEXT))
     }

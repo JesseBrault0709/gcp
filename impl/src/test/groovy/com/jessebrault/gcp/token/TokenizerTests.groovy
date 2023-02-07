@@ -1,10 +1,10 @@
-package com.jessebrault.gcp.tokenizer
+package com.jessebrault.gcp.token
 
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import static com.jessebrault.gcp.tokenizer.Token.Type.*
+import static com.jessebrault.gcp.token.Token.Type.*
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
 

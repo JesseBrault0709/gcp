@@ -1,4 +1,4 @@
-package com.jessebrault.gcp.tokenizer
+package com.jessebrault.gcp.token
 
 class ListTokenProviderTests extends AbstractTokenProviderTests {
 

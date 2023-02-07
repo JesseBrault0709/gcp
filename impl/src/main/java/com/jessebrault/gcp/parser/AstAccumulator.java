@@ -3,8 +3,8 @@ package com.jessebrault.gcp.parser;
 import com.jessebrault.gcp.ast.AstNode;
 import com.jessebrault.gcp.ast.DiagnosticNodeImpl;
 import com.jessebrault.gcp.ast.SimpleAstNode;
-import com.jessebrault.gcp.tokenizer.Token;
-import com.jessebrault.gcp.tokenizer.TokenProvider;
+import com.jessebrault.gcp.token.Token;
+import com.jessebrault.gcp.token.TokenProvider;
 
 import java.util.*;
 

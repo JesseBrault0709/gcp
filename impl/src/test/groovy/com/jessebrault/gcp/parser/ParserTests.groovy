@@ -1,15 +1,15 @@
 package com.jessebrault.gcp.parser
 
 import com.jessebrault.gcp.ast.AstNode
-import com.jessebrault.gcp.tokenizer.ListTokenProvider
-import com.jessebrault.gcp.tokenizer.Token
+import com.jessebrault.gcp.token.ListTokenProvider
+import com.jessebrault.gcp.token.Token
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import static com.jessebrault.gcp.tokenizer.Token.Type.TEXT
+import static com.jessebrault.gcp.token.Token.Type.TEXT
 import static org.junit.jupiter.api.Assertions.*
 
 class ParserTests {
@@ -77,31 +77,6 @@ class ParserTests {
 
     }
 
-    private static class TestToken implements Token {
-
-        Type type
-        CharSequence text
-        int startIndex
-        int endIndex
-        int line
-        int col
-
-        TestToken(Type type) {
-            this.type = type
-        }
-
-        TestToken(Type type, CharSequence text) {
-            this(type)
-            this.text = text
-        }
-
-        @Override
-        String toString() {
-            "TestToken(${ this.type }, ${ this.text })"
-        }
-
-    }
-
     private final Parser parser = new ParserImpl()
 
     private void parseDocument(
@@ -126,7 +101,7 @@ class ParserTests {
 
     @Test
     void doctypeHtml() {
-        def t0 = new TestToken(TEXT, '<!DOCTYPE html>')
+        def t0 = new Token(TEXT, '<!DOCTYPE html>', 0, 15)
         this.parseDocument([t0]) {
             assertIterableEquals([t0], it.tokens)
 

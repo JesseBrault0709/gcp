@@ -1,4 +1,4 @@
-package com.jessebrault.gcp.tokenizer;
+package com.jessebrault.gcp.token;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

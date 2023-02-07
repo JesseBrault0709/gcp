@@ -1,8 +1,7 @@
 package com.jessebrault.gcp.ast;
 
-import com.jessebrault.gcp.tokenizer.Token;
+import com.jessebrault.gcp.token.Token;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface AstNode {
