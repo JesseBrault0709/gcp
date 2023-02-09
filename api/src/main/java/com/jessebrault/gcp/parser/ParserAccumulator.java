@@ -19,4 +19,6 @@ public interface ParserAccumulator {
 
     void unexpectedToken(Collection<Token.Type> expectedTypes);
 
+    void unexpectedEndOfInput(Collection<Token.Type> expectedTypes);
+
 }

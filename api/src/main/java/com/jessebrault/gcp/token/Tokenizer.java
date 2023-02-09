@@ -15,7 +15,10 @@ public interface Tokenizer extends TokenProvider {
 
     CharSequence getCurrentInput();
 
-    State getCurrentState();
+    @Deprecated
+    State getCurrentOutputState();
+
+    State getCurrentInputState();
 
     default Queue<Token> tokenizeAll(CharSequence input, State initialState) {
         this.start(input, 0, input.length(), initialState);

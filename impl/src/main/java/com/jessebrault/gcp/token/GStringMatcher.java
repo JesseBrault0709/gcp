@@ -3,19 +3,33 @@ package com.jessebrault.gcp.token;
 import com.jessebrault.fsm.stackfunction.StackFunctionFsm;
 import com.jessebrault.fsm.stackfunction.StackFunctionFsmBuilder;
 import com.jessebrault.fsm.stackfunction.StackFunctionFsmBuilderImpl;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Pattern;
 
+/**
+ * TODO: either make another (incomplete) matcher, or adjust this one
+ */
 final class GStringMatcher implements FsmFunction {
 
     private static final class GStringMatcherOutput implements FsmOutput {
 
         private final CharSequence entire;
+        private final CharSequence openingDoubleQuote;
         private final CharSequence contents;
+        private final CharSequence closingDoubleQuote;
 
-        public GStringMatcherOutput(String entire, String contents) {
+        public GStringMatcherOutput(
+                CharSequence entire,
+                CharSequence openingDoubleQuote,
+                CharSequence contents,
+                CharSequence closingDoubleQuote
+        ) {
             this.entire = entire;
+            this.openingDoubleQuote = openingDoubleQuote;
             this.contents = contents;
+            this.closingDoubleQuote = closingDoubleQuote;
         }
 
         @Override
@@ -26,8 +40,9 @@ final class GStringMatcher implements FsmFunction {
         @Override
         public CharSequence part(int index) {
             return switch (index) {
-                case 1, 3 -> "\"";
+                case 1 -> this.openingDoubleQuote;
                 case 2 -> this.contents;
+                case 3 -> this.closingDoubleQuote;
                 default -> throw new IllegalArgumentException();
             };
         }
@@ -58,7 +73,7 @@ final class GStringMatcher implements FsmFunction {
                         acc.append(o.entire());
                     });
                     sc.onNoMatch().exec(input -> {
-                        throw new IllegalArgumentException();
+                        throw new RuntimeException("Should not have gotten here.");
                     });
                 })
                 .whileIn(State.CONTENTS, sc -> {
@@ -70,9 +85,6 @@ final class GStringMatcher implements FsmFunction {
                     });
                     sc.on(doubleQuote).shiftTo(State.DONE).exec(o -> {
                         acc.append(o.entire());
-                    });
-                    sc.onNoMatch().exec(input -> {
-                        throw new IllegalArgumentException();
                     });
                 })
                 .build();
@@ -94,15 +106,20 @@ final class GStringMatcher implements FsmFunction {
             final var output = fsm.apply(remaining);
             if (output == null) {
                 throw new IllegalStateException("output is null");
+            } else if (fsm.getCurrentState() == State.DONE) {
+                final var entire = acc.toString();
+                return new GStringMatcherOutput(
+                        entire,
+                        entire.substring(0, 1),
+                        entire.substring(1, entire.length() - 1),
+                        entire.substring(entire.length() - 1)
+                );
+            } else {
+                remaining = remaining.subSequence(output.entire().length(), remaining.length());
             }
-            if (fsm.getCurrentState() == State.DONE) {
-                break;
-            }
-            remaining = remaining.subSequence(output.entire().length(), remaining.length());
         }
-
-        final var entire = acc.toString();
-        return new GStringMatcherOutput(entire, entire.substring(1, entire.length() - 1));
+        // invalid or incomplete
+        return null;
     }
 
 }

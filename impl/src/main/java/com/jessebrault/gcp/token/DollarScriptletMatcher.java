@@ -8,6 +8,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.function.Supplier;
 
+/**
+ * TODO: don't throw an exception if it's invalid, simply return null or something else
+ */
 final class DollarScriptletMatcher implements FsmFunction {
 
     private static final Logger logger = LoggerFactory.getLogger(DollarScriptletMatcher.class);

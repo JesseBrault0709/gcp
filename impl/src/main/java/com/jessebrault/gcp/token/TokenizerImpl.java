@@ -15,7 +15,7 @@ public final class TokenizerImpl implements Tokenizer {
     private int endOffset;
 
     private int currentTokenIndex;
-    private List<Token> tokens;
+    private List<TokenAndInputState> tokensAndInputStates;
     private FunctionFsm<CharSequence, State, FsmOutput> fsm;
 
     private void pullTokens() {
@@ -34,8 +34,8 @@ public final class TokenizerImpl implements Tokenizer {
         this.currentOffset = startOffset;
         this.endOffset = endOffset;
         this.currentTokenIndex = 0;
-        this.tokens = new ArrayList<>();
-        this.fsm = TokenizerFsm.get(new Accumulator(this.tokens), initialState);
+        this.tokensAndInputStates = new ArrayList<>();
+        this.fsm = TokenizerFsm.get(new Accumulator(this.tokensAndInputStates, this.currentOffset), initialState);
         this.pullTokens();
     }
 
@@ -45,8 +45,17 @@ public final class TokenizerImpl implements Tokenizer {
     }
 
     @Override
-    public State getCurrentState() {
+    public State getCurrentOutputState() {
         return this.fsm.getCurrentState();
+    }
+
+    @Override
+    public State getCurrentInputState() {
+        if (this.currentTokenIndex < this.tokensAndInputStates.size()) {
+            return this.tokensAndInputStates.get(this.currentTokenIndex).getInputState();
+        } else {
+            return State.TEXT;
+        }
     }
 
     @Override
@@ -57,8 +66,8 @@ public final class TokenizerImpl implements Tokenizer {
 
     @Override
     public @Nullable Token getCurrent() {
-        if (this.currentTokenIndex < this.tokens.size()) {
-            return this.tokens.get(this.currentTokenIndex);
+        if (this.currentTokenIndex < this.tokensAndInputStates.size()) {
+            return this.tokensAndInputStates.get(this.currentTokenIndex).getToken();
         } else {
             return null;
         }
@@ -66,8 +75,8 @@ public final class TokenizerImpl implements Tokenizer {
 
     @Override
     public boolean peekCurrent(Token.Type type) {
-        if (this.currentTokenIndex < this.tokens.size()) {
-            return this.tokens.get(this.currentTokenIndex).getType() == type;
+        if (this.currentTokenIndex < this.tokensAndInputStates.size()) {
+            return this.tokensAndInputStates.get(this.currentTokenIndex).getToken().getType() == type;
         } else {
             return false;
         }
@@ -76,12 +85,12 @@ public final class TokenizerImpl implements Tokenizer {
     @Override
     public boolean peekSecond(Token.Type type) {
         final var secondIndex = this.currentTokenIndex + 1;
-        if (secondIndex < this.tokens.size()) {
-            return this.tokens.get(secondIndex).getType() == type;
+        if (secondIndex < this.tokensAndInputStates.size()) {
+            return this.tokensAndInputStates.get(secondIndex).getToken().getType() == type;
         } else {
             this.pullTokens();
-            if (secondIndex < this.tokens.size()) {
-                return this.tokens.get(secondIndex).getType() == type;
+            if (secondIndex < this.tokensAndInputStates.size()) {
+                return this.tokensAndInputStates.get(secondIndex).getToken().getType() == type;
             } else {
                 return false;
             }
@@ -92,8 +101,8 @@ public final class TokenizerImpl implements Tokenizer {
     public boolean peekInfinite(Token.Type type, Collection<Token.Type> failOn) {
         int peekIndex = this.currentTokenIndex;
         while (true) {
-            if (peekIndex < this.tokens.size()) {
-                final var peeked = this.tokens.get(peekIndex);
+            if (peekIndex < this.tokensAndInputStates.size()) {
+                final var peeked = this.tokensAndInputStates.get(peekIndex).getToken();
                 if (peeked.getType() == type) {
                     return true;
                 } else if (peeked.getType().isAnyOf(failOn)) {
@@ -102,7 +111,7 @@ public final class TokenizerImpl implements Tokenizer {
                 peekIndex++;
             } else {
                 this.pullTokens();
-                if (peekIndex >= this.tokens.size()) {
+                if (peekIndex >= this.tokensAndInputStates.size()) {
                     break;
                 }
             }

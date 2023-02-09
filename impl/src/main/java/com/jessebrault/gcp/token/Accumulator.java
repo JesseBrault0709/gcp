@@ -7,25 +7,32 @@ final class Accumulator {
 
     private static final Pattern newline = Pattern.compile("([\n\r])");
 
-    private final List<Token> tokens;
+    private final List<TokenAndInputState> tokensAndInputStates;
+
     private int currentInputIndex = 0;
     private int line = 1;
     private int col = 1;
 
-    public Accumulator(List<Token> tokenQueue) {
-        this.tokens = tokenQueue;
+    public Accumulator(List<TokenAndInputState> tokensAndInputStates, int startingInputIndex) {
+        this.tokensAndInputStates = tokensAndInputStates;
+        this.currentInputIndex = startingInputIndex;
     }
 
-    public void accumulate(Token.Type type, CharSequence text) {
+    public void accumulate(Token.Type type, CharSequence text, Tokenizer.State inputState) {
         final var endIndex = this.currentInputIndex + text.length();
-        this.tokens.add(new Token(
-                type,
-                text,
-                this.currentInputIndex,
-                endIndex,
-                this.line,
-                this.col
-        ));
+        this.tokensAndInputStates.add(
+                new TokenAndInputState(
+                        new Token(
+                                type,
+                                text,
+                                this.currentInputIndex,
+                                endIndex,
+                                this.line,
+                                this.col
+                        ),
+                        inputState
+                )
+        );
         this.currentInputIndex = endIndex;
         final var m = newline.matcher(text);
         if (m.find()) {

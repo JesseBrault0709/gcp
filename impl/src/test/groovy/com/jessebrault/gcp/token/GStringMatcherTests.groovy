@@ -3,6 +3,8 @@ package com.jessebrault.gcp.token
 import org.junit.jupiter.api.Test
 
 import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.assertNotNull
+import static org.junit.jupiter.api.Assertions.assertNull
 
 class GStringMatcherTests {
 
@@ -39,6 +41,16 @@ class GStringMatcherTests {
     @Test
     void takesOnlyAsNeeded() {
         test '"abc"', '"abc" test="def"'
+    }
+
+    @Test
+    void incompleteNoContents() {
+        assertNull(this.matcher.apply('"'))
+    }
+
+    @Test
+    void incompleteWithContents() {
+        assertNull(this.matcher.apply('"abc'))
     }
 
 }

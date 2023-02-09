@@ -90,6 +90,18 @@ public final class AstAccumulator implements ParserAccumulator {
     }
 
     @Override
+    public void unexpectedEndOfInput(Collection<Token.Type> expectedTypes) {
+        final var diagnosticNode = new AstNode(AstNode.Type.UNEXPECTED_END_OF_INPUT);
+        diagnosticNode.addDiagnostic(new NotEnoughTokensDiagnostic(expectedTypes));
+
+        final var parent = this.nodeStack.peek();
+        if (parent == null) {
+            throw new IllegalStateException();
+        }
+        parent.addChild(diagnosticNode);
+    }
+
+    @Override
     public String toString() {
         return "AstAccumulator(root: " + this.root + ", nodeStack: " + this.nodeStack + ")";
     }

@@ -52,10 +52,13 @@ public final class ParserImpl implements Parser {
 
         if (tokenProvider.peekCurrent(tokenType)) {
             accumulator.leaf(astNodeType);
-        } else {
+            tokenProvider.advance();
+        } else if (tokenProvider.getCurrent() != null) {
             accumulator.unexpectedToken(List.of(tokenType));
+            tokenProvider.advance();
+        } else {
+            accumulator.unexpectedEndOfInput(List.of(tokenType));
         }
-        tokenProvider.advance();
 
         logger.trace(exit, "");
     }

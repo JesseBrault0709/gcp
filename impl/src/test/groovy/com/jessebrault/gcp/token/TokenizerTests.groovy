@@ -245,4 +245,17 @@ class TokenizerTests extends AbstractTokenProviderTests {
         }
     }
 
+    @Test
+    void incompleteGString() {
+        test('<Test test="abc') {
+            expect COMPONENT_START, '<', 0, 1, 1, 1
+            expect CLASS_NAME, 'Test', 1, 5, 1, 2
+            expect WHITESPACE, ' ', 5, 6, 1, 6
+            expect KEY, 'test', 6, 10, 1, 7
+            expect EQUALS, '=', 10, 11, 1, 11
+            expect INVALID, '"', 11, 12, 1, 12
+            expect TEXT, 'abc', 12, 15, 1, 13
+        }
+    }
+
 }

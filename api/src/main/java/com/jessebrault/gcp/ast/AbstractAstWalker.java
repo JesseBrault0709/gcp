@@ -48,6 +48,7 @@ public abstract class AbstractAstWalker implements AstWalker {
                 case FORWARD_SLASH -> this.forwardSlash(child);
                 case COMPONENT_END -> this.componentEnd(child);
                 case UNEXPECTED_TOKEN -> this.unexpectedToken(child);
+                case UNEXPECTED_END_OF_INPUT -> this.unexpectedEndOfInput(child);
             }
         });
     }
@@ -246,4 +247,10 @@ public abstract class AbstractAstWalker implements AstWalker {
     public void unexpectedToken(AstNode unexpectedToken) {
         this.defaultWalk(unexpectedToken);
     }
+
+    @Override
+    public void unexpectedEndOfInput(AstNode unexpectedEndOfInput) {
+        this.defaultWalk(unexpectedEndOfInput);
+    }
+
 }

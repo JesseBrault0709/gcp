@@ -61,7 +61,8 @@ public final class AstNode {
         FORWARD_SLASH,
         COMPONENT_END,
 
-        UNEXPECTED_TOKEN
+        UNEXPECTED_TOKEN,
+        UNEXPECTED_END_OF_INPUT
     }
 
     private final Type type;

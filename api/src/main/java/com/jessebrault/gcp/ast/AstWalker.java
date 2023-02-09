@@ -53,4 +53,5 @@ public interface AstWalker {
     void componentEnd(AstNode componentEnd);
 
     void unexpectedToken(AstNode unexpectedToken);
+    void unexpectedEndOfInput(AstNode unexpectedEndOfInput);
 }

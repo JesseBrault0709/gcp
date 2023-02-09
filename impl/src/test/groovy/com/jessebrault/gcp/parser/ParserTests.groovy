@@ -168,6 +168,22 @@ class ParserTests {
     }
 
     @Test
+    void openingComponentNothingAfterClassName() {
+        def t0 = new Token(COMPONENT_START, '<', 0, 1)
+        def t1 = new Token(CLASS_NAME, 'Test', 1, 5)
+
+        this.parseDocument([t0, t1]) {
+            expect(AstNode.Type.OPENING_COMPONENT, [t0, t1]) {
+                expect(AstNode.Type.COMPONENT_START, [t0])
+                expect(AstNode.Type.COMPONENT_IDENTIFIER, [t1]) {
+                    expect(AstNode.Type.CLASS_NAME, [t1])
+                }
+                expect(AstNode.Type.UNEXPECTED_END_OF_INPUT, [])
+            }
+        }
+    }
+
+    @Test
     void simpleSelfClosingComponent() {
         def t0 = new Token(COMPONENT_START, '<', 0, 1)
         def t1 = new Token(CLASS_NAME, 'Test', 1, 5)
