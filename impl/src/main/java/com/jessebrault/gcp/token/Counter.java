@@ -16,6 +16,10 @@ final class Counter {
         return this.count == 0;
     }
 
+    public int getCount() {
+        return this.count;
+    }
+
     @Override
     public String toString() {
         return "Counter(" + this.count + ")";

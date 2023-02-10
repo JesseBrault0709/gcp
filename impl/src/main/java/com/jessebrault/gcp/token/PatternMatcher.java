@@ -1,5 +1,8 @@
 package com.jessebrault.gcp.token;
 
+import org.intellij.lang.annotations.Language;
+import org.intellij.lang.annotations.RegExp;
+
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
@@ -34,6 +37,10 @@ final class PatternMatcher implements FsmFunction {
 
     public PatternMatcher(Pattern pattern) {
         this.pattern = pattern;
+    }
+
+    public PatternMatcher(@Language("RegExp") @RegExp String regex) {
+        this.pattern = Pattern.compile(regex);
     }
 
     @Override

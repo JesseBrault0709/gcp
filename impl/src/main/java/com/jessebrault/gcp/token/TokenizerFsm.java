@@ -5,9 +5,10 @@ import com.jessebrault.fsm.function.FunctionFsmBuilder;
 import com.jessebrault.fsm.function.FunctionFsmBuilderImpl;
 import com.jessebrault.gcp.token.Tokenizer.State;
 
-import static com.jessebrault.gcp.token.Token.Type.*;
-
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
+
+import static com.jessebrault.gcp.token.Token.Type.*;
 
 final class TokenizerFsm {
 
@@ -102,9 +103,24 @@ final class TokenizerFsm {
         return new FunctionFsmBuilderImpl<>();
     }
 
-    public static FunctionFsm<CharSequence, State, FsmOutput> get(Accumulator acc, State state) {
+    public static FunctionFsm<CharSequence, State, FsmOutput> get(Accumulator acc, State initialState) {
+        final BiConsumer<FsmOutput, State> onDollarScriptlet = (o, state) -> {
+            if (o instanceof DollarScriptletMatcher.Success) {
+                acc.accumulate(DOLLAR, o.part(1), state);
+                acc.accumulate(CURLY_OPEN, o.part(2), state);
+                acc.accumulate(SCRIPTLET, o.part(3), state);
+                acc.accumulate(CURLY_CLOSE, o.part(4), state);
+            } else if (o instanceof DollarScriptletMatcher.Failure) {
+                acc.accumulate(DOLLAR, o.part(1), state);
+                acc.accumulate(CURLY_OPEN, o.part(2), state);
+                acc.accumulate(SCRIPTLET, o.part(3), state);
+            } else {
+                throw new IllegalArgumentException();
+            }
+        };
+
         return getFsmBuilder()
-                .setInitialState(state)
+                .setInitialState(initialState)
                 .whileIn(State.TEXT, sc -> {
                     sc.on(text).exec(o -> {
                         acc.accumulate(TEXT, o.entire(), State.TEXT);
@@ -113,12 +129,7 @@ final class TokenizerFsm {
                         acc.accumulate(DOLLAR, o.part(1), State.TEXT);
                         acc.accumulate(GROOVY_REFERENCE, o.part(2), State.TEXT);
                     });
-                    sc.on(dollarScriptlet).exec(o -> {
-                        acc.accumulate(DOLLAR, o.part(1), State.TEXT);
-                        acc.accumulate(CURLY_OPEN, o.part(2), State.TEXT);
-                        acc.accumulate(SCRIPTLET, o.part(3), State.TEXT);
-                        acc.accumulate(CURLY_CLOSE, o.part(4), State.TEXT);
-                    });
+                    sc.on(dollarScriptlet).exec(o -> onDollarScriptlet.accept(o, State.TEXT));
                     sc.on(blockScriptlet).exec(o -> {
                         acc.accumulate(BLOCK_SCRIPTLET_OPEN, o.part(1), State.TEXT);
                         acc.accumulate(SCRIPTLET, o.part(2), State.TEXT);
@@ -192,12 +203,7 @@ final class TokenizerFsm {
                         acc.accumulate(DOLLAR, o.part(1), State.COMPONENT_KEYS_AND_VALUES);
                         acc.accumulate(GROOVY_REFERENCE, o.part(2), State.COMPONENT_KEYS_AND_VALUES);
                     });
-                    sc.on(dollarScriptlet).exec(o -> {
-                        acc.accumulate(DOLLAR, o.part(1), State.COMPONENT_KEYS_AND_VALUES);
-                        acc.accumulate(CURLY_OPEN, o.part(2), State.COMPONENT_KEYS_AND_VALUES);
-                        acc.accumulate(SCRIPTLET, o.part(3), State.COMPONENT_KEYS_AND_VALUES);
-                        acc.accumulate(CURLY_CLOSE, o.part(4), State.COMPONENT_KEYS_AND_VALUES);
-                    });
+                    sc.on(dollarScriptlet).exec(o -> onDollarScriptlet.accept(o, State.COMPONENT_KEYS_AND_VALUES));
                     sc.on(blockScriptlet).exec(o -> {
                         acc.accumulate(BLOCK_SCRIPTLET_OPEN, o.part(1), State.COMPONENT_KEYS_AND_VALUES);
                         acc.accumulate(SCRIPTLET, o.part(2), State.COMPONENT_KEYS_AND_VALUES);

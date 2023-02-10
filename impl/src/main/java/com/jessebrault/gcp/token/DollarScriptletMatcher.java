@@ -1,30 +1,30 @@
 package com.jessebrault.gcp.token;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.jessebrault.fsm.stackfunction.StackFunctionFsm;
+import com.jessebrault.fsm.stackfunction.StackFunctionFsmBuilder;
+import com.jessebrault.fsm.stackfunction.StackFunctionFsmBuilderImpl;
 
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Supplier;
 
-/**
- * TODO: don't throw an exception if it's invalid, simply return null or something else
- */
 final class DollarScriptletMatcher implements FsmFunction {
 
-    private static final Logger logger = LoggerFactory.getLogger(DollarScriptletMatcher.class);
+    public sealed interface Output extends FsmOutput permits Failure, Success {}
 
-    private static final class DollarScriptletMatcherOutput implements FsmOutput {
+    public static final class Failure implements Output {
 
         private final CharSequence entire;
-        private final String scriptlet;
+        private final CharSequence dollar;
+        private final CharSequence startCurly;
+        private final CharSequence scriptlet;
 
-        public DollarScriptletMatcherOutput(
-                String entire,
-                String scriptlet
-        ) {
+        public Failure(CharSequence entire, CharSequence dollar, CharSequence startCurly, CharSequence scriptlet) {
             this.entire = entire;
+            this.dollar = dollar;
+            this.startCurly = startCurly;
             this.scriptlet = scriptlet;
         }
 
@@ -36,18 +36,177 @@ final class DollarScriptletMatcher implements FsmFunction {
         @Override
         public CharSequence part(int index) {
             return switch (index) {
-                case 1 -> "$";
-                case 2 -> "{";
+                case 1 -> this.dollar;
+                case 2 -> this.startCurly;
                 case 3 -> this.scriptlet;
-                case 4 -> "}";
                 default -> throw new IllegalArgumentException();
             };
         }
 
+        @Override
+        public String toString() {
+            return "Failure(" + this.entire + ")";
+        }
+
     }
 
+    public static final class Success implements Output {
+
+        private final CharSequence entire;
+        private final CharSequence dollar;
+        private final CharSequence startCurly;
+        private final CharSequence scriptlet;
+        private final CharSequence endCurly;
+
+        public Success(
+                CharSequence entire,
+                CharSequence dollar,
+                CharSequence startCurly,
+                CharSequence scriptlet,
+                CharSequence endCurly
+        ) {
+            this.entire = entire;
+            this.dollar = dollar;
+            this.startCurly = startCurly;
+            this.scriptlet = scriptlet;
+            this.endCurly = endCurly;
+        }
+
+        @Override
+        public CharSequence entire() {
+            return this.entire;
+        }
+
+        @Override
+        public CharSequence part(int index) {
+            return switch (index) {
+                case 1 -> this.dollar;
+                case 2 -> this.startCurly;
+                case 3 -> this.scriptlet;
+                case 4 -> this.endCurly;
+                default -> throw new IllegalArgumentException();
+            };
+        }
+
+        @Override
+        public String toString() {
+            return "Success(" + this.entire + ")";
+        }
+
+    }
+
+    private static final PatternMatcher dollar = new PatternMatcher("\\$");
+    private static final PatternMatcher curlyOpen = new PatternMatcher("\\{");
+    private static final PatternMatcher curlyClose = new PatternMatcher("}");
+    private static final PatternMatcher doubleQuote = new PatternMatcher("\"");
+    private static final PatternMatcher singleQuote = new PatternMatcher("'");
+    private static final PatternMatcher escape = new PatternMatcher("\\\\");
+
     private enum State {
-        NO_STRING, G_STRING, SINGLE_QUOTE_STRING
+        START_DOLLAR,
+        START_CURLY,
+
+        NO_STRING,
+        G_STRING,
+        SINGLE_QUOTE_STRING,
+
+        ESCAPE,
+        CHECK_CURLY,
+
+        DONE,
+        DONE_NO_MATCH
+    }
+
+    private static StackFunctionFsmBuilder<CharSequence, State, FsmOutput> getFsmBuilder() {
+        return new StackFunctionFsmBuilderImpl<>();
+    }
+
+    private static StackFunctionFsm<CharSequence, State, FsmOutput> getFsm() {
+        final Deque<Counter> counterStack = new LinkedList<>();
+
+        final Supplier<Counter> currentCounterSupplier = () -> {
+            final var currentCounter = counterStack.peek();
+            if (currentCounter == null) {
+                throw new IllegalStateException("currentCounter is null");
+            }
+            return currentCounter;
+        };
+
+        final var nonFinalCurlyClose = curlyClose.andThen(o -> {
+            if (o == null) {
+                return null;
+            } else if (currentCounterSupplier.get().getCount() > 1) {
+                return o;
+            } else {
+                return null;
+            }
+        });
+
+        final var finalCurlyClose = curlyClose.andThen(o -> {
+            if (o == null) {
+                return null;
+            } else if (currentCounterSupplier.get().getCount() == 1) {
+                return o;
+            } else if (currentCounterSupplier.get().getCount() < 1) {
+                throw new IllegalStateException();
+            } else {
+                return null;
+            }
+        });
+
+        return getFsmBuilder()
+                .setInitialState(State.START_DOLLAR)
+
+                .whileIn(State.START_DOLLAR, sc -> {
+                    sc.on(dollar).shiftTo(State.START_CURLY);
+                    sc.onNoMatch().shiftTo(State.DONE_NO_MATCH);
+                })
+
+                .whileIn(State.START_CURLY, sc -> {
+                    sc.on(curlyOpen).pushStates(List.of(State.DONE, State.NO_STRING)).exec(o -> {
+                        counterStack.push(new Counter()); // initial
+                        currentCounterSupplier.get().increment(); // == 1
+                    });
+                    sc.onNoMatch().shiftTo(State.DONE_NO_MATCH);
+                })
+
+                .whileIn(State.NO_STRING, sc -> {
+                    sc.on(curlyOpen).exec(o -> currentCounterSupplier.get().increment());
+                    sc.on(nonFinalCurlyClose).exec(o -> currentCounterSupplier.get().decrement());
+                    sc.on(finalCurlyClose).popState().exec(o -> counterStack.pop());
+                    sc.on(doubleQuote).pushState(State.G_STRING);
+                    sc.on(singleQuote).pushState(State.SINGLE_QUOTE_STRING);
+                    sc.onNoMatch().instead(InputFsmOutput::new);
+                })
+
+                .whileIn(State.G_STRING, sc -> {
+                    sc.on(escape).pushState(State.ESCAPE);
+                    sc.on(dollar).pushState(State.CHECK_CURLY);
+                    sc.on(doubleQuote).popState();
+                    sc.onNoMatch().instead(InputFsmOutput::new);
+                })
+
+                .whileIn(State.ESCAPE, sc -> {
+                    sc.onNoMatch().popState().instead(InputFsmOutput::new);
+                })
+
+                .whileIn(State.CHECK_CURLY, sc -> {
+                    sc.on(curlyOpen).shiftTo(State.NO_STRING).exec(o -> {
+                        counterStack.push(new Counter());
+                        currentCounterSupplier.get().increment();
+                    });
+                    sc.onNoMatch()
+                            .popState()
+                            .instead(InputFsmOutput::new);
+                })
+
+                .whileIn(State.SINGLE_QUOTE_STRING, sc -> {
+                    sc.on(escape).pushState(State.ESCAPE);
+                    sc.on(singleQuote).popState();
+                    sc.onNoMatch().instead(InputFsmOutput::new);
+                })
+
+                .build();
     }
 
     private static final class CharSequenceIterator implements Iterator<String> {
@@ -75,134 +234,48 @@ final class DollarScriptletMatcher implements FsmFunction {
 
     @Override
     public FsmOutput apply(CharSequence s) {
-        final Deque<State> stateStack = new LinkedList<>();
-        final Deque<Counter> counterStack = new LinkedList<>();
+        final var fsm = getFsm();
+        final var iterator = new CharSequenceIterator(s);
+        final var acc = new StringBuilder();
 
-        final Supplier<Counter> currentCounterSupplier = () -> {
-            final var currentCounter = counterStack.peek();
-            if (currentCounter == null) {
-                throw new IllegalStateException("currentCounter is null");
-            }
-            return currentCounter;
-        };
-
-        stateStack.push(State.NO_STRING);
-        counterStack.push(new Counter());
-
-        final Iterator<String> iterator = new CharSequenceIterator(s);
-
-        final var entireAcc = new StringBuilder();
-
-        if (!iterator.hasNext() || !iterator.next().equals("$")) {
-            return null;
-        } else {
-            entireAcc.append("$");
-        }
-
-        if (!iterator.hasNext() || !iterator.next().equals("{")) {
-            return null;
-        } else {
-            entireAcc.append("{");
-            currentCounterSupplier.get().increment();
-        }
-
-        outer:
         while (iterator.hasNext()) {
-            if (stateStack.isEmpty()) {
-                throw new IllegalStateException("stateStack is empty");
-            }
-            if (counterStack.isEmpty()) {
-                throw new IllegalStateException("counterStack is empty");
-            }
-
-            final var c0 = iterator.next();
-            entireAcc.append(c0);
-
-            logger.debug("----");
-            logger.debug("c0: {}", c0);
-
-            if (stateStack.peek() == State.NO_STRING) {
-                switch (c0) {
-                    case "{" -> currentCounterSupplier.get().increment();
-                    case "}" -> {
-                        final var currentCounter = currentCounterSupplier.get();
-                        currentCounter.decrement();
-                        if (currentCounter.isZero()) {
-                            if (counterStack.size() == 1) {
-                                logger.debug("last Counter is zero; breaking while loop");
-                                break outer;
-                            } else {
-                                logger.debug("counterStack.size() is greater than 1 and top Counter is zero; " +
-                                        "popping state and counter stacks.");
-                                stateStack.pop();
-                                counterStack.pop();
-                            }
-                        }
-                    }
-                    case "\"" -> stateStack.push(State.G_STRING);
-                    case "'" -> stateStack.push(State.SINGLE_QUOTE_STRING);
-                }
-            } else if (stateStack.peek() == State.G_STRING) {
-                switch (c0) {
-                    case "\\" -> {
-                        if (iterator.hasNext()) {
-                            final var c1 = iterator.next();
-                            entireAcc.append(c1);
-                        } else {
-                            throw new IllegalArgumentException(
-                                    "Ill-formed dollarScriptlet (backslash followed by nothing)"
-                            );
-                        }
-                    }
-                    case "$" -> {
-                        if (iterator.hasNext()) {
-                            final var c1 = iterator.next();
-                            entireAcc.append(c1);
-                            if (c1.equals("{")) {
-                                stateStack.push(State.NO_STRING);
-                                counterStack.push(new Counter());
-                                currentCounterSupplier.get().increment();
-                            }
-                        } else {
-                            throw new IllegalArgumentException("Ill-formed dollarScriptlet (ends with a dollar)");
-                        }
-                    }
-                    case "\"" -> {
-                        logger.debug("popping G_STRING state");
-                        stateStack.pop();
-                    }
-                }
-            } else if (stateStack.peek() == State.SINGLE_QUOTE_STRING) {
-                switch (c0) {
-                    case "\\" -> {
-                        if (iterator.hasNext()) {
-                            entireAcc.append(iterator.next());
-                        } else {
-                            throw new IllegalArgumentException(
-                                    "Ill-formed dollarScriptlet (backslash followed by nothing)"
-                            );
-                        }
-                    }
-                    case "'" -> {
-                        logger.debug("popping SINGLE_QUOTE_STRING state");
-                        stateStack.pop();
-                    }
-                }
-            } else {
-                throw new IllegalStateException(
-                        "stateStack contains something which does not equal a state or is null"
-                );
+            final var c = iterator.next();
+            final var o = fsm.apply(c);
+            if (o != null) {
+                acc.append(o.entire());
             }
 
-            logger.debug("entireAcc: {}", entireAcc);
-            logger.debug("stateStack: {}", stateStack);
-            logger.debug("counterStack: {}", counterStack);
+            switch (fsm.getCurrentState()) {
+                case DONE -> {
+                    final var entire = acc.toString();
+                    return new Success(
+                            entire,
+                            entire.substring(0, 1),
+                            entire.substring(1, 2),
+                            entire.substring(2, entire.length() - 1),
+                            entire.substring(entire.length() - 1)
+                    );
+                }
+                case DONE_NO_MATCH -> {
+                    return null;
+                }
+            }
         }
 
-        return new DollarScriptletMatcherOutput(
-                entireAcc.toString(),
-                entireAcc.substring(2, entireAcc.length() - 1)
-        );
+        // ran out of chars
+        final var entire = acc.toString();
+        if (entire.length() >= 2) {
+            return new Failure(
+                    entire,
+                    entire.substring(0, 1),
+                    entire.substring(1, 2),
+                    entire.substring(2)
+            );
+        } else if (entire.length() == 0){
+            return null;
+        } else {
+            throw new IllegalStateException("Should not get here.");
+        }
     }
 
 }
